@@ -1,0 +1,46 @@
+---
+- hosts: webservers
+  tasks:
+    - name: install apache2 klient1 Debian 12 ja CentOS
+      package:
+        name: "{{ apache_paket }}"
+        state: latest
+
+    - name: enable and start apache ja httpd Debianil ja CentOSil
+      service:
+        name: "{{ apache_paket }}"
+        state: started
+        enabled: true
+
+    - name: allow http traffic in firewall on CentOS
+      firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
+      when: ansible_os_family == "RedHat"
+
+    - name: Muudame home user kataloogi õigused
+      file:
+        path: /home/user/
+        mode: 0711
+
+    - name: Loome public_html kataloogi userile
+      file:
+        path: /home/user/public_html
+        owner: user
+        group: user
+        mode: 0755
+        state: directory
+
+    - name: Lubame userdir mod Debian 12
+      apache2_module:
+        name: userdir
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Lubame userdir conf faili sisu
+      lineinfile:
+        dest: "{{ asukoht_userdir_conf }}"
+        regexp: "Require method GET POST OPTIONS"
+        line: "Require all granted"

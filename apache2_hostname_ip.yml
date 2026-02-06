@@ -1,0 +1,28 @@
+---
+- hosts: webservers
+  tasks:
+    - name: Uus index kus on hostname ja ip
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <!DOCTYPE html>
+          <html lang="et">
+          <head>
+              <meta charset="UTF-8">
+              <title>Tere Kasutaja</title>
+              <style>
+                  body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+                  .info { color: #555; }
+              </style>
+          </head>
+          <body>
+              <h1>Tere Kasutaja</h1>
+              <div class="info">
+                  <p><strong>Hostname:</strong> {{ ansible_hostname }}</p>
+                  <p><strong>IP Address:</strong> {{ ansible_default_ipv4.address }}</p>
+              </div>
+          </body>
+          </html>
+        owner: user
+        group: user
+        mode: 0644
