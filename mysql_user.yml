@@ -1,0 +1,62 @@
+---
+- hosts: debian
+
+  tasks:
+    - name: Paigaldame Pythoni MySQL teegi
+      apt:
+        name: python3-pymysql
+        state: present
+        update_cache: yes
+
+    - name: Loome conf faili et sisse lülitada mysql_native_password plugin
+      copy:
+        dest: /etc/mysql/conf.d/enable-mysql-native-password.cnf
+        content: |
+          [mysqld]
+          mysql_native_password=ON
+
+    - name: Taaskäivitame mysql teenuse et loodud conf file sisse loetaks
+      service:
+        name: mysql
+        state: restarted
+
+    - name: Kontrollime kas .my.cnf on juba olemas
+      stat:
+        path: /root/.my.cnf
+      register: my_cnf_file
+
+    - name: Uuendame MySQL root kasutaja parooli
+      community.mysql.mysql_user:
+        name: root
+        password: qwerty
+        host: localhost
+        plugin: mysql_native_password
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        priv: "*.*:ALL,GRANT"
+        state: present
+      register: set_root_pw
+      ignore_errors: yes
+
+    - name: Loome /root/.my.cnf faili mugavaks sisselogimiseks
+      copy:
+        dest: /root/.my.cnf
+        content: |
+          [client]
+          user=root
+          password=qwerty
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Keelame MySQL kaugühendused ja lubada ainult root konto localhostilt
+      lineinfile:
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: '^#?bind-address'
+        line: 'bind-address = 127.0.0.1'
+        state: present
+
+    - name: Taaskäivitame MySQL teenuse, et muudatused jõustuksid
+      service:
+        name: mysql
+        state: restarted

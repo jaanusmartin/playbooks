@@ -1,0 +1,36 @@
+---
+- hosts: debian
+  tasks:
+    - name: Loome allalaadimiseks kataloogi
+      file:
+        path: /root/allalaadimised
+        owner: root
+        group: root
+        mode: 0755
+        state: directory
+
+    - name: Laeme alla MySQL APT paketi wget abil
+      shell: |
+        wget -O /root/allalaadimised/mysql-apt-config_0.8.36-1_all.deb https://dev.mysql.com/get/mysql-apt-config_0.8.36-1_all.deb
+
+    - name: Paigaldame gnupg
+      apt:
+        name: gnupg
+        state: present
+        update_cache: yes
+
+    - name: Installeerime MySQL repositooriumi
+      apt:
+        deb: /root/allalaadimised/mysql-apt-config_0.8.36-1_all.deb
+
+    - name: Teeme apt-ile update
+      apt:
+        update_cache: yes
+
+    - name: Paigaldame MySQL serveri
+      apt:
+        name: mysql-server
+        state: present
+
+
+
