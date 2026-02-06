@@ -1,0 +1,17 @@
+---
+- hosts: webservers
+  tasks:
+    - name: eemalda php
+      package:
+        name: "{{ php_eemaldamine }}"
+        state: absent
+
+    - name: phpinfo.php kustutamine
+      file:
+        path: /var/www/html/phpinfo.php
+        state: absent
+
+    - name: kontroll et Apache töötaks edasi
+      service:
+        name: "{{ apache_paket }}"
+        state: started

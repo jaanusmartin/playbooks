@@ -1,0 +1,31 @@
+---
+- hosts: webservers
+  tasks:
+    - name: paigaldame php
+      package:
+        name: "{{ php_paket }}"
+        state: latest
+
+    - name: phpinfo.php loomine
+      copy:
+        dest: /var/www/html/phpinfo.php
+        content: |
+          <?php
+          phpinfo();
+          ?>
+        owner: user
+        group: user
+        mode: 0644
+
+    - name: php-fpm restart CentOS
+      service:
+        name: php-fpm
+        state: started
+        enabled: true
+      when: ansible_os_family == "RedHat"
+
+    - name: httpd restart CentOS
+      service:
+        name: httpd
+        state: restarted
+      when: ansible_os_family == "RedHat"
